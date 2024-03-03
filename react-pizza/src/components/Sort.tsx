@@ -1,32 +1,39 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { setSort } from '../redux/slices/filterSlice';
+import React, { useRef, useState, useEffect, memo } from 'react';
+import { useDispatch } from 'react-redux';
+import { Sort, sortPropertyEnum } from '../redux/filter/types';
+import { setSort } from '../redux/filter/slice';
 
-export const sortList = [
-  { name: 'популярности ↑', sortProperty: '-rating' },
-  { name: 'популярности ↓', sortProperty: 'rating' },
-  { name: 'цене ↑', sortProperty: '-price' },
-  { name: 'цене ↓', sortProperty: 'price' },
-  { name: 'алфавиту ↑', sortProperty: '-title' },
-  { name: 'алфавиту ↓', sortProperty: 'title' },
+type sortItem = { name: string; sortProperty: sortPropertyEnum };
+
+export const sortList: sortItem[] = [
+  { name: 'популярности ↑', sortProperty: sortPropertyEnum.RATING_ASC },
+  { name: 'популярности ↓', sortProperty: sortPropertyEnum.RATING_DESC },
+  { name: 'цене ↑', sortProperty: sortPropertyEnum.PRICE_ASC },
+  { name: 'цене ↓', sortProperty: sortPropertyEnum.PRICE_DESC },
+  { name: 'алфавиту ↑', sortProperty: sortPropertyEnum.TITLE_ASC },
+  { name: 'алфавиту ↓', sortProperty: sortPropertyEnum.TITLE_DESC },
 ];
 
-function Sort() {
+type SortPopupProps = {
+  value: Sort;
+};
+
+const SortPopup: React.FC<SortPopupProps> = memo(({ value }) => {
   const dispatch = useDispatch();
-  const sort = useSelector((state) => state.filter.sort);
-  const sortRef = useRef();
+  // const sort = useSelector(selectSort);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   const [open, setOpen] = useState(false);
 
-  const onClickListItem = (obj) => {
+  const onClickListItem = (obj: sortItem) => {
     //  onClickSort(i);
     dispatch(setSort(obj));
     setOpen(!open);
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.composedPath().includes(sortRef.current)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortRef.current && !event.composedPath().includes(sortRef.current)) {
         setOpen(false);
       }
     };
@@ -52,7 +59,7 @@ function Sort() {
           />
         </svg>
         <b>Сортировка по:</b>
-        <span onClick={() => setOpen(!open)}>{sort.name}</span>
+        <span onClick={() => setOpen(!open)}>{value.name}</span>
       </div>
       {open && (
         <div className="sort__popup">
@@ -61,7 +68,7 @@ function Sort() {
               <li
                 key={i}
                 onClick={() => onClickListItem(obj)}
-                className={sort.sortProperty === obj.sortProperty ? 'active' : ''}>
+                className={value.sortProperty === obj.sortProperty ? 'active' : ''}>
                 {obj.name}
               </li>
             ))}
@@ -70,6 +77,6 @@ function Sort() {
       )}
     </div>
   );
-}
+});
 
-export default Sort;
+export default SortPopup;
